@@ -41,4 +41,6 @@ def change_breakdown(change: int) -> dict:
         if count > 0:
             result[str(d)] = count
             remaining -= count * d
+    if remaining != 0:
+        raise ValueError("cannot_return_exact_change")
     return {"change": change, "denominations": result}
