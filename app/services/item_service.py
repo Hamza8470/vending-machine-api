@@ -15,13 +15,27 @@ def add_item_to_slot(db: Session, slot_id: str, data: ItemCreate) -> Item:
     # changed the sign to > to allow adding items up to capacity, not just below it
     if slot.current_item_count + data.quantity > settings.MAX_ITEMS_PER_SLOT:
         raise ValueError("capacity_exceeded")
-    item = Item(
-        name=data.name,
-        price=data.price,
-        slot_id=slot_id,
-        quantity=data.quantity,
-    )
-    db.add(item)
+
+    existing_item = db.query(Item).filter(
+        Item.slot_id == slot_id, 
+        Item.name == data.name
+    ).first()
+
+    if existing_item:
+        # Update the existing record instead of creating a new one
+        existing_item.quantity += data.quantity
+        # If the price changed, you might want to update it too:
+        existing_item.price = data.price 
+        item = existing_item
+    else:
+        # Create a new record only if it doesn't exist
+        item = Item(
+            name=data.name,
+            price=data.price,
+            slot_id=slot_id,
+            quantity=data.quantity,
+        )
+        db.add(item)
     slot.current_item_count += data.quantity
     db.commit()
     db.refresh(item)
