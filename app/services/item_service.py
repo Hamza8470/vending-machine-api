@@ -7,6 +7,8 @@ from app.schemas import ItemBulkEntry, ItemCreate
 
 
 def add_item_to_slot(db: Session, slot_id: str, data: ItemCreate) -> Item:
+    normalized_name = data.name.strip().lower()
+    # normalize name to avoid duplicates with different casing/spacing
     slot = db.query(Slot).filter(Slot.id == slot_id).first()
     if not slot:
         raise ValueError("slot_not_found")
